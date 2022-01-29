@@ -1,0 +1,45 @@
+---
+###############################################################################
+# Crashplan for Business Install
+###############################################################################
+#
+# Args:
+#   crashplan_force_install: boolean true to force reinstallation.
+#   _crashplan_extract_dir: string local archive location.
+#   _crashplan_install_dir: string crashplan installation location.
+#
+# Reference:
+# * https://www.nicksherlock.com/2016/10/creating-a-crashplan-container-on-proxmox-to-back-up-your-files/
+# * https://support.code42.com/Small_Business/Get_Started/CrashPlan_for_Small_Business_requirements
+# * https://superuser.com/questions/806637/xauth-not-creating-xauthority-file
+# * https://github.com/jlesage/docker-crashplan-pro#taking-over-existing-backup
+
+- name: 'install | uninstall (forced)'
+  ansible.builtin.command: '{{ _crashplan_extract_dir }}/uninstall.sh -q -i {{ _crashplan_install_dir }}'
+  when: crashplan_force_install and _crashplan_installed.stat.exists
+
+- name: 'install | install'
+  ansible.builtin.command: '{{ _crashplan_extract_dir }}/install.sh -q'
+  args:
+    chdir:   '{{ _crashplan_extract_dir }}'
+    creates: '{{ _crashplan_install_dir }}/bin/desktop.sh'
+  register: _crashplan_install_results
+
+- name: 'install | set JVM memory limits'
+  ansible.builtin.template:
+    src:  'jvm_args.j2'
+    dest: '{{ _crashplan_install_dir }}/conf/jvm_args'
+    owner: 'root'
+    group: 'root'
+    mode:  0644
+
+- name: 'install | reboot notification'
+  ansible.builtin.debug:
+    msg: |
+      Machine reboot is required for service to start correctly. Rebooting now.
+  when: _crashplan_install_results.rc == 0
+
+- name: 'install | reboot machine'
+  ansible.builtin.reboot:
+    reboot_timeout: 120
+  when: _crashplan_install_results.rc == 0

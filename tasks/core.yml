@@ -1,0 +1,60 @@
+---
+###############################################################################
+# Crashplan for Business Install
+###############################################################################
+# Setup core metadata, packages, and install location.
+#
+# Args:
+#   crashplan_default_packages: list of packages for Crashplan install.
+#
+# Generates:
+#   _crashplan_archive: string crashplan archive name.
+#   _crashplan_url: string URI for crashplan linux archive.
+#   _crashplan_extract_dir: string local archive location.
+#   _crashplan_install_dir: string crashplan installation location.
+
+- name: 'install | set version metadata'
+  ansible.builtin.set_fact:
+    _crashplan_archive: 'CrashPlanSmb_{{ crashplan_version }}_{{ crashplan_timestamp }}_{{ crashplan_build }}_Linux.tgz'
+    _crashplan_url: 'https://download.code42.com/installs/agent/cloud/{{ crashplan_version }}/{{ crashplan_build }}/install'
+    _crashplan_extract_dir: '/var/local/crashplan/{{ crashplan_version }}_{{ crashplan_timestamp }}_{{ crashplan_build }}'
+    _crashplan_install_dir: '/usr/local/crashplan'
+
+- name: 'install | install core packages'
+  ansible.builtin.apt:
+    name:  '{{ crashplan_default_packages }}'
+    state: 'latest'
+    update_cache: true
+
+- name: 'install | check install location'
+  ansible.builtin.stat:
+    path: '{{ _crashplan_install_dir }}'
+  register: _crashplan_installed
+
+- name: 'install | create installer location'
+  ansible.builtin.file:
+    path:    '{{ _crashplan_extract_dir }}'
+    owner:   'root'
+    group:   'root'
+    mode:    0755
+    state:   'directory'
+    recurse: true
+
+- name: 'install | download installer'
+  ansible.builtin.get_url:
+    url:   '{{ _crashplan_url }}/{{ _crashplan_archive }}'
+    dest:  '/tmp/{{ _crashplan_archive }}'
+    checksum: 'sha1:{{ crashplan_checksum }}'
+    owner: 'root'
+    group: 'root'
+    mode:  '0600'
+
+- name: 'install | extract installer'
+  ansible.builtin.unarchive:
+    src:        '/tmp/{{ _crashplan_archive }}'
+    remote_src: true
+    dest:       '{{ _crashplan_extract_dir }}/'
+    creates:    '{{ _crashplan_extract_dir }}/install.sh'
+    owner:      'root'
+    group:      'root'
+    extra_opts: '--strip-components=1'

@@ -1,0 +1,13 @@
+---
+###############################################################################
+# Default Crashplan Package Dependencies
+###############################################################################
+# Default required packages for Crashplan install.
+
+crashplan_default_packages:
+  - 'libgconf-2-4'
+  - 'libnss3'
+  - 'libasound2'
+  - 'xfce4'
+  # Fixes 'libGL error: failed to load driver: swrast'
+  - 'libgl1-mesa-glx'
