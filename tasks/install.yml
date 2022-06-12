@@ -3,10 +3,15 @@
 # Crashplan for Business Install
 ###############################################################################
 #
+# Crashplan 10 on non-ubuntu systems requires patching libauw.so so logins work
+# correctly. This is currently done by extracting the raw file from the CPIO
+# archive and copied in place before rebooting the system.
+#
 # Args:
 #   crashplan_force_install: boolean true to force reinstallation.
 #   _crashplan_extract_dir: string local archive location.
 #   _crashplan_install_dir: string crashplan installation location.
+#   _crashplan_cpio_source: string local libauw.so source location.
 #
 # Reference:
 # * https://www.nicksherlock.com/2016/10/creating-a-crashplan-container-on-proxmox-to-back-up-your-files/
@@ -24,6 +29,18 @@
     chdir:   '{{ _crashplan_extract_dir }}'
     creates: '{{ _crashplan_install_dir }}/bin/desktop.sh'
   register: _crashplan_install_results
+
+- name: 'install | fix login issue (libauw.so debian patch)'
+  ansible.builtin.copy:
+    src:        '{{ _crashplan_cpio_source }}'
+    remote_src: true
+    dest:       '/usr/local/crashplan/nlib/libuaw.so'
+    owner:      'root'
+    group:      'root'
+    mode:       0744
+  when:
+    crashplan_version is version('10.0.0', '>=') and
+    ansible_distribution == 'Debian'
 
 - name: 'install | set JVM memory limits'
   ansible.builtin.template:

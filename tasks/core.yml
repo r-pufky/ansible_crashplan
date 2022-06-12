@@ -4,6 +4,10 @@
 ###############################################################################
 # Setup core metadata, packages, and install location.
 #
+# Crashplan 10 on non-ubuntu systems requires patching libauw.so so logins work
+# correctly. This is currently done by extracting the raw file from the CPIO
+# archive and copied in place before rebooting the system.
+#
 # Args:
 #   crashplan_default_packages: list of packages for Crashplan install.
 #
@@ -12,35 +16,46 @@
 #   _crashplan_url: string URI for crashplan linux archive.
 #   _crashplan_extract_dir: string local archive location.
 #   _crashplan_install_dir: string crashplan installation location.
+#   _crashplan_cpio_archive: string filename for CPIO archive.
+#   _crashplan_cpi: string CPIO local archive location.
+#   _crashplan_cpio_source: string local libauw.so source location.
+#
+# Reference:
+# * https://old.reddit.com/r/Crashplan/comments/upjjk3/fix_v10_fix_login_issue_missing_libuawso/
 
-- name: 'install | set version metadata'
+- name: 'core | set version metadata'
   ansible.builtin.set_fact:
     _crashplan_archive: 'CrashPlanSmb_{{ crashplan_version }}_{{ crashplan_timestamp }}_{{ crashplan_build }}_Linux.tgz'
+    _crashplan_cpio_archive: 'CrashPlanSmb_{{ crashplan_version }}.cpi'
     _crashplan_url: 'https://download.code42.com/installs/agent/cloud/{{ crashplan_version }}/{{ crashplan_build }}/install'
     _crashplan_extract_dir: '/var/local/crashplan/{{ crashplan_version }}_{{ crashplan_timestamp }}_{{ crashplan_build }}'
     _crashplan_install_dir: '/usr/local/crashplan'
 
-- name: 'install | install core packages'
+- name: 'core | set cpio location'
+  ansible.builtin.set_fact:
+    _crashplan_cpio: '{{ _crashplan_extract_dir }}/{{ _crashplan_cpio_archive }}'
+    _crashplan_cpio_source: '{{ _crashplan_extract_dir }}/nlib/ubuntu20/libuaw.so'
+
+- name: 'core | install core packages'
   ansible.builtin.apt:
     name:  '{{ crashplan_default_packages }}'
     state: 'latest'
     update_cache: true
 
-- name: 'install | check install location'
+- name: 'core | check install location'
   ansible.builtin.stat:
     path: '{{ _crashplan_install_dir }}'
   register: _crashplan_installed
 
-- name: 'install | create installer location'
+- name: 'core | create installer location'
   ansible.builtin.file:
     path:    '{{ _crashplan_extract_dir }}'
     owner:   'root'
     group:   'root'
     mode:    0755
     state:   'directory'
-    recurse: true
 
-- name: 'install | download installer'
+- name: 'core | download installer'
   ansible.builtin.get_url:
     url:   '{{ _crashplan_url }}/{{ _crashplan_archive }}'
     dest:  '/tmp/{{ _crashplan_archive }}'
@@ -49,7 +64,7 @@
     group: 'root'
     mode:  '0600'
 
-- name: 'install | extract installer'
+- name: 'core | extract installer'
   ansible.builtin.unarchive:
     src:        '/tmp/{{ _crashplan_archive }}'
     remote_src: true
@@ -58,3 +73,12 @@
     owner:      'root'
     group:      'root'
     extra_opts: '--strip-components=1'
+
+- name: 'core | extract cpi package (libauw.so debian patch)'
+  ansible.builtin.shell: 'set -o pipefail && gzip -dc "{{ _crashplan_cpio }}" | cpio -i 2>&1'
+  args:
+    executable: '/bin/bash'
+    chdir:      '{{ _crashplan_extract_dir }}'
+  when:
+    crashplan_version is version('10.0.0', '>=') and
+    ansible_distribution == 'Debian'

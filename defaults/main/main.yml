@@ -71,10 +71,10 @@
 # * https://support.code42.com/Small_Business/Get_Started/CrashPlan_for_Small_Business_requirements
 
 # From https://console.us2.crashplanpro.com/app/#/console/app-downloads
-crashplan_version:   '8.8.1'
-crashplan_build:     33
-crashplan_timestamp: 1525200006881
-crashplan_checksum:  '2aa31e565deb0c1fa15ee76c033568e3f47d5713'
+crashplan_version:   '10.0.0'
+crashplan_build:     303
+crashplan_timestamp: 15252000061000
+crashplan_checksum:  '713a58ae2977fa22e85a6b3f3a845b74bfe6908e'
 
 # Crashplan JVM memory in MB; 1GB per 1TB backup for largest backup set.
 # If crashing this likely needs to be bumped higher.
