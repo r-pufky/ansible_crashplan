@@ -27,7 +27,7 @@
   ansible.builtin.set_fact:
     _crashplan_archive: 'CrashPlanSmb_{{ crashplan_version }}_{{ crashplan_timestamp }}_{{ crashplan_build }}_Linux.tgz'
     _crashplan_cpio_archive: 'CrashPlanSmb_{{ crashplan_version }}.cpi'
-    _crashplan_url: 'https://download.code42.com/installs/agent/cloud/{{ crashplan_version }}/{{ crashplan_build }}/install'
+    _crashplan_url: 'https://download.crashplan.com/installs/agent/cloud/{{ crashplan_version }}/{{ crashplan_build }}/install'
     _crashplan_extract_dir: '/var/local/crashplan/{{ crashplan_version }}_{{ crashplan_timestamp }}_{{ crashplan_build }}'
     _crashplan_install_dir: '/usr/local/crashplan'
 
