@@ -1,0 +1,30 @@
+---
+###############################################################################
+# Remove Old Crashplan Versions
+###############################################################################
+# Remove versioned crashplan directories, excluding the currently set crashplan
+# version.
+#
+# Args:
+#   _crashplan_target: string live crashplan version.
+#   crashplan_delete_old_versions: boolean true to remove older versions.
+
+- name: 'clean | find existing installations'
+  ansible.builtin.find:
+    paths:     '/var/local/crashplan'
+    file_type: 'directory'
+    recurse:   false
+  register: _crashplan_existing_installs
+
+- name: 'clean | debug'
+  ansible.builtin.debug:
+    msg: '{{ _crashplan_existing_installs }}'
+
+- name: 'clean | remove old versions'
+  ansible.builtin.file:
+    path:  '{{ item.path }}'
+    state: 'absent'
+  loop: '{{ _crashplan_existing_installs.files }}'
+  when: |
+    _crashplan_extract_dir != item.path and
+    crashplan_delete_old_versions

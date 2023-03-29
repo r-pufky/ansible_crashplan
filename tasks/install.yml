@@ -7,6 +7,12 @@
 # correctly. This is currently done by extracting the raw file from the CPIO
 # archive and copied in place before rebooting the system.
 #
+# 11.x.x: current segfaults with JVM after authentication. This is a known
+# issue as stated by one of the developers and a fix is underway. Until this is
+# fixed, stay on 10.x.x installations -- 11 will **NOT** work.
+#
+# https://old.reddit.com/r/Crashplan/comments/11tfw78/they_borked_it_again_sigh/
+#
 # Args:
 #   crashplan_force_install: boolean true to force reinstallation.
 #   _crashplan_extract_dir: string local archive location.
@@ -40,6 +46,7 @@
     mode:       0744
   when:
     crashplan_version is version('10.0.0', '>=') and
+    crashplan_version is version('11.0.0', '<') and
     ansible_distribution == 'Debian'
 
 - name: 'install | set JVM memory limits'
@@ -49,6 +56,18 @@
     owner: 'root'
     group: 'root'
     mode:  0644
+
+- name: 'install | disable auto crashplan upgrades'
+  ansible.builtin.file:
+    path: '/usr/local/crashplan/upgrade'
+    mode: 0000
+  when: not crashplan_auto_upgrades
+
+- name: 'install | enable auto crashplan upgrades'
+  ansible.builtin.file:
+    path: '/usr/local/crashplan/upgrade'
+    mode: 0755
+  when: crashplan_auto_upgrades
 
 - name: 'install | reboot notification'
   ansible.builtin.debug:

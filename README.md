@@ -5,6 +5,11 @@ Crashplan installation from public release tarball.
 Pre-existing crashplan.com account. Approximately 1GB of RAM per 1TB for
 largest backup set.
 
+Currently [Crashplan 11.x.x stack dumps after authentication](https://old.reddit.com/r/Crashplan/comments/11tfw78/they_borked_it_again_sigh/).
+This is a known issue with the current release and is currently being fixed.
+Please use the latest 10.x.x version instead, and set `crashplan_auto_upgrades`
+to `false` to prevent Crashplan from updating and wedging itself.
+
 ## Role Variables
 Settings have been throughly documented for usage, including version updates.
 

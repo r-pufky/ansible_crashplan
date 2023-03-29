@@ -71,17 +71,30 @@
 # * https://support.code42.com/Small_Business/Get_Started/CrashPlan_for_Small_Business_requirements
 
 # From https://console.us2.crashplanpro.com/app/#/console/app-downloads
+
+# TODO(release-bug): 11.x.x currently segfaults with JVM after authentication.
+#     This is a known issue as stated by one of the developers and a fix is
+#     underway. Until this is fixed, stay on 10.x.x installations -- 11 will
+#     **NOT** work. Set crashplan_auto_upgrades: false
+#
+# https://old.reddit.com/r/Crashplan/comments/11tfw78/they_borked_it_again_sigh/
 crashplan_version:   '10.4.1'
 crashplan_build:     19
 crashplan_timestamp: 15252000061041
 crashplan_checksum:  '16333839698c7588b5863d2ffaa3feb43d9802b3'
 
 # Crashplan JVM memory in MB; 1GB per 1TB backup for largest backup set.
-# If crashing this likely needs to be bumped higher.
+# If crashing this likely needs to be bumped higher. Default: 6144.
 crashplan_memory: 6144
 
-# Force reinstallation?
+# Enable automatic crashplan client upgrades. Default: true.
+crashplan_auto_upgrades: true
+
+# Force reinstallation? Default: false.
 crashplan_force_install: false
 
-# Keep existing crashplan settings on reinstallation?
+# Keep existing crashplan settings on reinstallation? Default: false.
 crashplan_keep_settings: false
+
+# Remove old installer archives? Default: true.
+crashplan_delete_old_versions: true

@@ -23,18 +23,36 @@
 # Reference:
 # * https://old.reddit.com/r/Crashplan/comments/upjjk3/fix_v10_fix_login_issue_missing_libuawso/
 
-- name: 'core | set version metadata'
+- name: 'core | set version non-timestamp metadata'
+  ansible.builtin.set_fact:
+    _crashplan_archive: 'CrashPlanSmb_{{ crashplan_version }}_{{ crashplan_build }}_Linux.tgz'
+    _crashplan_version_dir: '{{ crashplan_version }}_{{ crashplan_build }}'
+  when: crashplan_timestamp|string|length == 0
+
+- name: 'core | set version timestamp metadata'
   ansible.builtin.set_fact:
     _crashplan_archive: 'CrashPlanSmb_{{ crashplan_version }}_{{ crashplan_timestamp }}_{{ crashplan_build }}_Linux.tgz'
+    _crashplan_version_dir: '{{ crashplan_version }}_{{ crashplan_timestamp }}_{{ crashplan_build }}'
+  when: crashplan_timestamp|string|length > 0
+
+- name: 'core | set version metadata'
+  ansible.builtin.set_fact:
     _crashplan_cpio_archive: 'CrashPlanSmb_{{ crashplan_version }}.cpi'
     _crashplan_url: 'https://download.crashplan.com/installs/agent/cloud/{{ crashplan_version }}/{{ crashplan_build }}/install'
-    _crashplan_extract_dir: '/var/local/crashplan/{{ crashplan_version }}_{{ crashplan_timestamp }}_{{ crashplan_build }}'
     _crashplan_install_dir: '/usr/local/crashplan'
+    _crashplan_extract_dir: '/var/local/crashplan/{{ _crashplan_version_dir }}'
 
 - name: 'core | set cpio location'
   ansible.builtin.set_fact:
     _crashplan_cpio: '{{ _crashplan_extract_dir }}/{{ _crashplan_cpio_archive }}'
+
+- name: 'core | set 10.x.x libuaw.so source location'
+  ansible.builtin.set_fact:
     _crashplan_cpio_source: '{{ _crashplan_extract_dir }}/nlib/ubuntu20/libuaw.so'
+  when:
+    crashplan_version is version('10.0.0', '>=') and
+    crashplan_version is version('11.0.0', '<') and
+    ansible_distribution == 'Debian'
 
 - name: 'core | install core packages'
   ansible.builtin.apt:
@@ -81,4 +99,5 @@
     chdir:      '{{ _crashplan_extract_dir }}'
   when:
     crashplan_version is version('10.0.0', '>=') and
+    crashplan_version is version('11.0.0', '<') and
     ansible_distribution == 'Debian'
