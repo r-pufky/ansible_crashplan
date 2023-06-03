@@ -1,5 +1,7 @@
-# Crashplan
+# Crashplan **Deprecated**
 Crashplan installation from public release tarball.
+
+**Deprecated**. This module is no longer maintained.
 
 ## Requirements
 Pre-existing crashplan.com account. Approximately 1GB of RAM per 1TB for
